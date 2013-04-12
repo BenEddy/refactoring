@@ -43,30 +43,36 @@ class InsightLookup
    applicant_overdeveloped? ? INSIGHTS[:applicant_overdeveloped_text] : INSIGHTS[:applicant_underdeveloped_text]
   end
 
+  def target_key
+    if target_low?
+      'target_low'
+    elsif target_high?
+      'target_high'
+    else
+      'target_general'
+    end
+  end
+
   def text_with_target
     if applicant_underdeveloped?
       if target_low?
         if @applicant_score < @target_score
-          INSIGHTS[:target_low_applicant_more_underdeveloped_text]
+          INSIGHTS["#{target_key}_applicant_more_underdeveloped_text".to_sym]
         else
-          INSIGHTS[:target_low_applicant_less_underdeveloped_text]
+          INSIGHTS["#{target_key}_applicant_less_underdeveloped_text".to_sym]
         end
-      elsif target_high?
-        INSIGHTS[:target_high_applicant_underdeveloped_text]
       else
-        INSIGHTS[:target_general_applicant_underdeveloped_text]
+        INSIGHTS["#{target_key}_applicant_underdeveloped_text".to_sym]
       end
     elsif applicant_overdeveloped?
-      if target_low?
-        INSIGHTS[:target_low_applicant_overdeveloped_text]
-      elsif target_high?
+      if target_high?
         if @applicant_score > @target_score
-          INSIGHTS[:target_high_applicant_more_overdeveloped_text]
+          INSIGHTS["#{target_key}_applicant_more_overdeveloped_text".to_sym]
         else
-          INSIGHTS[:target_high_applicant_less_overdeveloped_text]
+          INSIGHTS["#{target_key}_applicant_less_overdeveloped_text".to_sym]
         end
       else
-        INSIGHTS[:target_general_applicant_overdeveloped_text]
+        INSIGHTS["#{target_key}_applicant_overdeveloped_text".to_sym]
       end
     end
   end
