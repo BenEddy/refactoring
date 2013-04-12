@@ -13,70 +13,87 @@ class InsightLookup
   }
 
   def initialize(applicant_score, target_score)
-    @applicant_score = applicant_score
-    @target_score = target_score
+    @applicant_score = Score.new(applicant_score)
+    @target_score    = Score.new(target_score)
   end
 
   def analyze
-    @target_score.nil? ? text_without_target : text_with_target
+    @target_score.present? ? text_with_target : text_without_target
   end
 
   private
 
-  def applicant_underdeveloped?
-    @applicant_score < 40
-  end
-
-  def applicant_in_range?
-    @applicant_score >= 40 && @applicant_score <= 60
-  end
-
-  def applicant_overdeveloped?
-    @applicant_score > 60
-  end
-
-  def target_low?
-    @target_score < 40
-  end
-
-  def target_high?
-    @target_score > 60
-  end
-
   def text_without_target
-   applicant_overdeveloped? ? INSIGHTS[:overdeveloped] : INSIGHTS[:underdeveloped]
-  end
-
-  def target_key
-    if target_low?
-      'low'
-    elsif target_high?
-      'high'
-    else
-      'general'
-    end
-  end
-
-  def comparison_level(in_range, compare)
-    (compare ? 'more' : 'less') if in_range
+   @applicant_score.high? ? INSIGHTS[:overdeveloped] : INSIGHTS[:underdeveloped]
   end
 
   def text_with_target
-    keys = []
+    keys = [@target_score.to_key]
 
-    keys << target_key
-
-    if applicant_in_range?
+    if @applicant_score.general?
       return nil
-    elsif applicant_underdeveloped?
-      keys << comparison_level(target_low?, @applicant_score < @target_score)
+    elsif @applicant_score.low?
+      keys << @target_score.relative_to(:low, @applicant_score)
       keys << 'underdeveloped'
-    elsif applicant_overdeveloped?
-      keys << comparison_level(target_high?, @applicant_score > @target_score)
+    elsif @applicant_score.high?
+      keys << @target_score.relative_to(:high, @applicant_score)
       keys << 'overdeveloped'
     end
 
     INSIGHTS[keys.compact.join('_').to_sym]
+  end
+
+  class Score
+    LOW_THRESHOLD  = 40
+    HIGH_THRESHOLD = 60
+
+    attr_reader :value
+
+    def initialize(value)
+      @value = value
+    end
+
+    def low?
+      @value < LOW_THRESHOLD
+    end
+
+    def high?
+      @value > HIGH_THRESHOLD
+    end
+
+    def general?
+      @value >= LOW_THRESHOLD && @value <= HIGH_THRESHOLD
+    end
+
+    def >(other)
+      @value > other.value
+    end
+
+    def <(other)
+      @value < other.value
+    end
+
+    def present?
+      !@value.nil?
+    end
+
+    def relative_to(target, other)
+      if target == :low && low?
+        (self > other) ? 'more' : 'less'
+      elsif target == :high && high?
+        (self < other) ? 'more' : 'less'
+      end
+    end
+
+    def to_key
+      if low?
+        'low'
+      elsif high?
+        'high'
+      else
+        'general'
+      end
+    end
   end
 
 end
