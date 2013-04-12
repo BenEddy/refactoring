@@ -27,6 +27,10 @@ class InsightLookup
     @applicant_score < 40
   end
 
+  def applicant_in_range?
+    @applicant_score >= 40 && @applicant_score <= 60
+  end
+
   def applicant_overdeveloped?
     @applicant_score > 60
   end
@@ -53,20 +57,24 @@ class InsightLookup
     end
   end
 
+  def comparison_level(in_range, compare)
+    (compare ? '_more' : '_less') if in_range
+  end
+
   def text_with_target
     key = "#{target_key}_applicant"
 
-    if applicant_underdeveloped?
-      if target_low?
-        key << ((@applicant_score < @target_score) ? '_more' : '_less')
-      end
-      INSIGHTS["#{key}_underdeveloped_text".to_sym]
+    if applicant_in_range?
+      nil
+    elsif applicant_underdeveloped?
+      key << comparison_level(target_low?, @applicant_score < @target_score).to_s
+      key << '_underdeveloped'
     elsif applicant_overdeveloped?
-      if target_high?
-        key << ((@applicant_score > @target_score) ? '_more' : '_less')
-      end
-      INSIGHTS["#{key}_overdeveloped_text".to_sym]
+      key << comparison_level(target_high?, @applicant_score > @target_score).to_s
+      key << '_overdeveloped'
     end
+
+    INSIGHTS["#{key}_text".to_sym]
   end
 
 end
