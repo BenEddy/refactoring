@@ -54,26 +54,19 @@ class InsightLookup
   end
 
   def text_with_target
+    key = "#{target_key}_applicant"
+
     if applicant_underdeveloped?
       if target_low?
-        if @applicant_score < @target_score
-          INSIGHTS["#{target_key}_applicant_more_underdeveloped_text".to_sym]
-        else
-          INSIGHTS["#{target_key}_applicant_less_underdeveloped_text".to_sym]
-        end
-      else
-        INSIGHTS["#{target_key}_applicant_underdeveloped_text".to_sym]
+        key << ((@applicant_score < @target_score) ? '_more' : '_less')
       end
+      INSIGHTS["#{key}_underdeveloped_text".to_sym]
     elsif applicant_overdeveloped?
       if target_high?
-        if @applicant_score > @target_score
-          INSIGHTS["#{target_key}_applicant_more_overdeveloped_text".to_sym]
-        else
-          INSIGHTS["#{target_key}_applicant_less_overdeveloped_text".to_sym]
-        end
-      else
-        INSIGHTS["#{target_key}_applicant_overdeveloped_text".to_sym]
+        key << ((@applicant_score > @target_score) ? '_more' : '_less')
       end
+      INSIGHTS["#{key}_overdeveloped_text".to_sym]
     end
   end
+
 end
